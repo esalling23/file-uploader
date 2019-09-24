@@ -69,7 +69,7 @@ router.post('/fileUploads', upload.single('upload'), (req, res, next) => {
   // req.body.fileUpload.owner = req.user.id
   console.log(req.file, req.body)
   // uploading the file using AWS & S3
-  fileUploadApi(req.file.originalname, req.file.buffer)
+  fileUploadApi(req.file)
     .then(s3Response => {
       console.log(s3Response)
       const fileUploadParams = {
