@@ -67,14 +67,23 @@ router.get('/fileUploads/:id', requireToken, (req, res, next) => {
 router.post('/fileUploads', upload.single('upload'), (req, res, next) => {
   // set owner of new fileUpload to be current user
   // req.body.fileUpload.owner = req.user.id
-  console.log(req.file)
+  console.log(req.file, req.body)
+  // uploading the file using AWS & S3
   fileUploadApi(req.file.originalname, req.file.buffer)
-    .then(console.log)
-  // FileUpload.create(req.body.fileUpload)
-  //   // respond to succesful `create` with status 201 and JSON of new "fileUpload"
-  //   .then(fileUpload => {
-  //     res.status(201).json({ fileUpload: fileUpload.toObject() })
-  //   })
+    .then(s3Response => {
+      console.log(s3Response)
+      const fileUploadParams = {
+        name: s3Response.Key,
+        fileType: req.file.mimetype,
+        url: s3Response.Location
+      }
+      // Create database document
+      return FileUpload.create(fileUploadParams)
+    })
+    // respond to succesful `create` with status 201 and JSON of new "fileUpload"
+    .then(mongooseResponse => {
+      res.status(201).json({ fileUpload: mongooseResponse.toObject() })
+    })
     // if an error occurs, pass it off to our error handler
     // the error handler needs the error message and the `res` object so that it
     // can send an error message back to the client
